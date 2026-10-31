@@ -38,6 +38,12 @@ ul{margin:0;padding-left:18px;display:grid;gap:4px}
 .src,.coord{margin-top:10px;font-size:12px;color:var(--muted)}
 .eyebrow{font-size:12px;color:var(--muted);letter-spacing:.04em}
 .x{position:sticky;float:right;top:0;border-radius:50%;width:30px;height:30px;padding:0;font-size:18px;line-height:1}
+.tg{position:sticky;float:right;top:0;border-radius:50%;width:30px;height:30px;padding:0;font-size:20px;line-height:1;margin-left:6px;z-index:1}
+/* Collapsed boxes keep only their title line */
+#panel.collapsed>:not(h1):not(.tg),#card.collapsed>:not(.eyebrow):not(h2):not(.tg):not(.x){display:none!important}
+.box.collapsed{overflow:hidden}
+#panel.collapsed h1{margin:0;font-size:19px;line-height:30px}
+#card.collapsed h2{margin-bottom:0;font-size:18px}
 .figs{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:12px}
 .figs div{border:1px solid var(--line);border-radius:8px;padding:8px}
 .figs b{display:block;font:italic 600 18px var(--disp)}
@@ -76,6 +82,8 @@ details summary h3::after{content:" ▾"}
  #card{left:8px;right:8px;top:auto;bottom:calc(8px + env(safe-area-inset-bottom,0px));width:auto;max-height:32%}
  #note{left:8px;right:8px;bottom:auto;top:calc(28vh + 78px);text-align:center;font-size:10px}
  #hud{bottom:auto;top:calc(28vh + 50px);font-size:11px}
+ body.pc #hud{top:calc(64px + env(safe-area-inset-top,0px))}
+ body.pc #note{top:calc(92px + env(safe-area-inset-top,0px))}
 }
 </style>
 </head>
@@ -85,6 +93,7 @@ details summary h3::after{content:" ▾"}
 <div id="globe" role="img" aria-label="Περιστρεφόμενη υδρόγειος με τα κέντρα καλλιέργειας dragon fruit"></div>
 
 <aside id="panel" class="box">
+  <button class="tg" type="button" data-box="panel" aria-expanded="true" aria-label="Σύμπτυξη πάνελ" title="Σύμπτυξη">−</button>
   <h1>Άτλας Dragon Fruit</h1>
   <p class="sub">42 κέντρα καλλιέργειας στον κόσμο, 9 ελληνικές θέσεις και οι ζώνες καταλληλότητας του ελληνικού σχεδίου.</p>
   <h3>Πετάξτε σε</h3>
@@ -398,13 +407,13 @@ function refresh(){if(!world)return;
  world.polygonAltitude(bucket===3?0.003:0.0004).polygonsData(on.zones&&bucket>0?zones:[]);}
 
 const card=document.getElementById("card");
-function close(){sel=null;styleP();intro()}
-function intro(){card.innerHTML=`<p class="eyebrow">Οδηγός</p><h2>Εξερευνήστε την υδρόγειο</h2>
+function close(){sel=null;styleP();intro();applyUI()}
+function intro(){card.innerHTML=`${tgBtn()}<p class="eyebrow">Οδηγός</p><h2>Εξερευνήστε την υδρόγειο</h2>
 <p class="sub" style="margin-top:6px">Σύρετε για περιστροφή, κάντε ζουμ με τη ροδέλα ή με δύο δάχτυλα και πατήστε μια καρφίτσα για λεπτομέρειες· με «Δορυφόρος HD» το ζουμ φτάνει μέχρι τις ίδιες τις καλλιέργειες. Οι παλλόμενοι κύκλοι δείχνουν τις κύριες τοποθεσίες. Στην Ελλάδα, οι έγχρωμες ζώνες δείχνουν την καταλληλότητα κατά το σχέδιο της έκθεσης.</p>
 <div class="figs"><div><b>1,5–1,6 εκατ. t</b><span>Κίνα, ετήσια παραγωγή (εκτ.)</span></div><div><b>1,12 εκατ. t</b><span>Βιετνάμ, 2024</span></div><div><b>&lt;10 ha</b><span>Ελλάδα, συνολική έκταση (εκτ.)</span></div><div><b>≈€5/kg</b><span>Ελληνική τιμή παραγωγού</span></div></div>`}
 function select(d){sel=d;styleP();fly(d.lat,d.lng,siteAlt(d,cfg.zoom));
  const f=d.f;
- card.innerHTML=`<button class="x" aria-label="Κλείσιμο">×</button>
+ card.innerHTML=`<button class="x" aria-label="Κλείσιμο">×</button>${tgBtn()}
 <p class="eyebrow"><span class="dot" style="background:${REG[d.reg][0]}"></span>${REG[d.reg][1]} · ${d.code}</p>
 <h2>${d.name}</h2><p class="sub">${d.country}</p>
 <dl>${d.rows.map(r=>`<dt>${r[0]}</dt><dd>${r[1]}</dd>`).join("")}</dl>
@@ -417,7 +426,7 @@ ${f?`<h3>Βασικά στοιχεία</h3><ul>${f[0].map(x=>`<li>${x}</li>`).jo
   fly(d.lat,d.lng,siteAlt(d,b.dataset.z))};}
 function showZone(z){sel=null;styleP();
  const t=z.tier.split("–");
- card.innerHTML=`<button class="x" aria-label="Κλείσιμο">×</button>
+ card.innerHTML=`<button class="x" aria-label="Κλείσιμο">×</button>${tgBtn()}
 <p class="eyebrow"><span class="dot" style="background:${TIER[z.tier]}"></span>Ζώνη καταλληλότητας · κατάταξη ${z.tier}</p>
 <h2>${z.name}</h2><p class="sub" style="margin-top:6px">${z.note}</p>
 <h3>Σύστημα για αυτή τη ζώνη</h3>${t.map(k=>`<p style="margin-bottom:6px">${t.length>1?`<b>Κατάταξη ${k}:</b> `:""}${TIERSYS[k]}</p>`).join("")}
@@ -439,8 +448,19 @@ const hot=sites.filter(s=>s.f);
 document.getElementById("hot").innerHTML=Object.keys(REG).map(k=>hot.filter(s=>s.reg===k).map(s=>`<button data-id="${s.id}"><span class="dot" style="background:${REG[k][0]}"></span><span class="num">${s.code.replace("#","")}</span><span>${s.name}</span></button>`).join("")).join("");
 document.getElementById("hot").onclick=e=>{const b=e.target.closest("button");if(!b)return;const s=sites.find(x=>String(x.id)===b.dataset.id);if(s){if(!on[s.reg]){on[s.reg]=true;layers();refresh()}if(world)world.controls().autoRotate=on.rotate=false;layers();select(s)}};
 if(matchMedia("(max-width:760px)").matches)document.getElementById("hotBox").open=false;
+// Collapsible panel and card: remembered separately on phones and computers
+const phone=matchMedia("(max-width:760px)").matches,UIKEY="atlasUI"+(phone?"m":"d");
+let ui={panel:phone,card:phone};
+try{Object.assign(ui,JSON.parse(localStorage.getItem(UIKEY)||"{}"))}catch(e){}
+function tgBtn(){const c=!!ui.card;return `<button class="tg" type="button" data-box="card" aria-expanded="${!c}" aria-label="${c?"Ανάπτυξη":"Σύμπτυξη"} κάρτας" title="${c?"Ανάπτυξη":"Σύμπτυξη"}">${c?"+":"−"}</button>`}
+function applyUI(){for(const id of["panel","card"]){const box=document.getElementById(id),c=!!ui[id];box.classList.toggle("collapsed",c);
+  const b=box.querySelector(":scope>.tg");if(b){b.textContent=c?"+":"−";b.setAttribute("aria-expanded",String(!c));const w=c?"Ανάπτυξη":"Σύμπτυξη";b.title=w;b.setAttribute("aria-label",w+(id==="panel"?" πάνελ":" κάρτας"))}}
+ document.body.classList.toggle("pc",!!ui.panel)}
+document.addEventListener("click",e=>{const b=e.target.closest(".tg");if(!b)return;const id=b.dataset.box;ui[id]=!ui[id];
+ try{localStorage.setItem(UIKEY,JSON.stringify(ui))}catch(err){}applyUI()});
+applyUI();
 buildSettings();applyQuality();setImagery(cfg.img);
-intro();
+intro();applyUI();
 </script>
 
 </body></html>
